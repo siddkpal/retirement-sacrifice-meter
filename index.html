@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Sacrifice Meter — Housing vs. Retirement</title>
+<meta name="description" content="See the real, compounding cost of your home loan EMI on your retirement corpus — calculated live, in your browser, in Python." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
+<script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-inner">
+    <div class="loading-mark">₹</div>
+    <p class="loading-text">Booting the Python engine in your browser…</p>
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-mark">⚖</span>
+      <span class="brand-name">The Sacrifice Meter</span>
+    </div>
+    <div class="header-tag">Housing vs. Retirement — calculated live, in Python, in your browser</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">A real-time actuarial calculator</p>
+      <h1 class="hero-title">Every rupee toward<br><span class="accent-house">a home loan EMI</span><br>is a rupee taken from<br><span class="accent-retire">your retirement</span>.</h1>
+      <p class="hero-sub">Enter your numbers below. The scale will show you exactly how much your housing decision is costing your future self — compounded, in today's rupees.</p>
+      <a href="#calculator" class="hero-cta">Run the numbers ↓</a>
+    </div>
+    <div class="hero-scale" aria-hidden="true">
+      <div class="scale-beam" id="hero-beam">
+        <div class="scale-pan scale-pan-left">
+          <div class="pan-icon">🏠</div>
+        </div>
+        <div class="scale-pan scale-pan-right">
+          <div class="pan-icon">🌅</div>
+        </div>
+      </div>
+      <div class="scale-stand"></div>
+    </div>
+  </section>
+
+  <!-- ============ CALCULATOR ============ -->
+  <section class="calculator" id="calculator">
+    <div class="calc-inner">
+
+      <div class="calc-panel input-panel">
+        <h2 class="panel-title">Your numbers</h2>
+        <p class="panel-sub">Defaults reflect a typical Indian corporate employee profile — change anything.</p>
+
+        <div class="field-group">
+          <div class="field-group-label">You, today</div>
+          <div class="field-row">
+            <label class="field" for="current_age">
+              <span class="field-label">Current age</span>
+              <input type="number" id="current_age" value="28" min="18" max="59" step="1">
+            </label>
+            <label class="field" for="retirement_age">
+              <span class="field-label">Retirement age</span>
+              <input type="number" id="retirement_age" value="60" min="19" max="75" step="1">
+            </label>
+          </div>
+          <label class="field full" for="starting_salary">
+            <span class="field-label">Annual CTC (₹)</span>
+            <input type="number" id="starting_salary" value="2000000" min="100000" step="50000">
+          </label>
+          <label class="field-slider full" for="salary_growth">
+            <span class="field-label">Annual salary growth <b id="salary_growth_val">8%</b></span>
+            <input type="range" id="salary_growth" value="8" min="0" max="20" step="0.5">
+          </label>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-label">Retirement instruments</div>
+          <label class="field-slider full" for="nps_voluntary_pct">
+            <span class="field-label">Voluntary NPS (% of Basic) <b id="nps_voluntary_pct_val">5%</b></span>
+            <input type="range" id="nps_voluntary_pct" value="5" min="0" max="20" step="1">
+          </label>
+          <label class="toggle-row" for="wecare_enrolled">
+            <span class="field-label">Enrol in "WeCare" defined-benefit plan</span>
+            <span class="toggle">
+              <input type="checkbox" id="wecare_enrolled">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </span>
+          </label>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-label">The house you want</div>
+          <label class="field full" for="house_price">
+            <span class="field-label">House price (₹)</span>
+            <input type="number" id="house_price" value="15000000" min="0" step="500000">
+          </label>
+          <div class="field-row">
+            <label class="field-slider" for="ltv">
+              <span class="field-label">Loan-to-value <b id="ltv_val">80%</b></span>
+              <input type="range" id="ltv" value="80" min="0" max="100" step="5">
+            </label>
+            <label class="field-slider" for="loan_tenure_years">
+              <span class="field-label">Tenure (yrs) <b id="loan_tenure_years_val">20</b></span>
+              <input type="range" id="loan_tenure_years" value="20" min="5" max="30" step="1">
+            </label>
+          </div>
+          <label class="field-slider full" for="home_loan_rate">
+            <span class="field-label">Home loan rate <b id="home_loan_rate_val">7.5%</b></span>
+            <input type="range" id="home_loan_rate" value="7.5" min="4" max="14" step="0.1">
+          </label>
+        </div>
+
+        <button id="recalc-btn" class="recalc-btn">Recalculate</button>
+        <p class="engine-note">Computed by <code>engine.py</code> running live in your browser via Pyodide — no server, no data leaves your device.</p>
+      </div>
+
+      <div class="calc-panel results-panel">
+        <div id="py-status" class="py-status">Loading Python runtime…</div>
+
+        <div class="result-hero" id="result-hero">
+          <div class="result-hero-label">The Sacrifice</div>
+          <div class="result-hero-value" id="sacrifice-value">—</div>
+          <div class="result-hero-sub" id="sacrifice-sub">Run the calculation to see your number.</div>
+        </div>
+
+        <div class="balance-widget">
+          <div class="balance-track">
+            <div class="balance-fill" id="balance-fill"></div>
+            <div class="balance-marker safe" style="left:25%"><span>25%</span></div>
+            <div class="balance-marker caution" style="left:35%"><span>35%</span></div>
+            <div class="balance-marker danger" style="left:45%"><span>45%</span></div>
+          </div>
+          <div class="balance-labels">
+            <span>0% of take-home</span>
+            <span id="emi-pct-label">EMI: —</span>
+            <span>100%</span>
+          </div>
+          <div class="zone-badge" id="zone-badge">—</div>
+        </div>
+
+        <div class="result-grid">
+          <div class="result-card house">
+            <div class="result-card-label">Monthly EMI</div>
+            <div class="result-card-value" id="r-emi">—</div>
+            <div class="result-card-foot" id="r-emi-pct">— of net take-home</div>
+          </div>
+          <div class="result-card retire">
+            <div class="result-card-label">Retirement corpus at retirement</div>
+            <div class="result-card-value" id="r-corpus">—</div>
+            <div class="result-card-foot" id="r-rr">— replacement ratio</div>
+          </div>
+          <div class="result-card neutral">
+            <div class="result-card-label">Total interest you'll pay</div>
+            <div class="result-card-value" id="r-interest">—</div>
+            <div class="result-card-foot">over the life of the loan</div>
+          </div>
+          <div class="result-card warn">
+            <div class="result-card-label">Opportunity cost</div>
+            <div class="result-card-value" id="r-oppcost">—</div>
+            <div class="result-card-foot">if the EMI were invested instead, at 12% p.a.</div>
+          </div>
+        </div>
+
+        <div class="safe-zone-strip" id="safe-zone-strip">
+          <div class="safe-zone-text">
+            <span class="safe-zone-kicker">Your safe EMI ceiling</span>
+            <span class="safe-zone-value" id="r-safe-emi">—</span>
+          </div>
+          <div class="safe-zone-text right">
+            <span class="safe-zone-kicker">Max house price, safely</span>
+            <span class="safe-zone-value" id="r-safe-house">—</span>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-title">Corpus growth, age <span id="chart-age-from">28</span> → <span id="chart-age-to">60</span></div>
+          <svg id="corpus-chart" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="explainer">
+    <div class="explainer-inner">
+      <h2>What's actually being calculated</h2>
+      <div class="explainer-grid">
+        <div class="explainer-card">
+          <div class="explainer-num">EMI</div>
+          <p>Standard annuity formula on your loan amount, rate, and tenure — the same maths your bank uses.</p>
+        </div>
+        <div class="explainer-card">
+          <div class="explainer-num">FV</div>
+          <p>Your EPF, NPS, and WeCare contributions are grown year-by-year as your salary rises, compounding at each instrument's own assumed return.</p>
+        </div>
+        <div class="explainer-card">
+          <div class="explainer-num">Opp.</div>
+          <p>The opportunity cost is the future value of investing your exact EMI amount in equity instead, at the same monthly cadence, for the same number of months.</p>
+        </div>
+        <div class="explainer-card">
+          <div class="explainer-num">Safe</div>
+          <p>The safe EMI ceiling reserves 15% of take-home for retirement, 40% for living costs, and 10% as a buffer — whatever's left is what you can safely commit to a loan.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Built for the Marsh × IFoA Actuarial Edge 2026 — Track 1: Wealth &amp; Pensions.<br>
+  All calculations run locally in your browser. No data is collected, stored, or transmitted.</p>
+</footer>
+
+<py-config>
+packages = []
+
+[files]
+"./engine.py" = "./engine.py"
+</py-config>
+<script type="py" src="./app.py"></script>
+
+</body>
+</html>
